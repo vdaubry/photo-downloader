@@ -10,6 +10,9 @@
 /tmp/
 aws.yml
 .env
+.DS_Store
+spec/fixtures
+hosts_conf_spec.yml
 
 ## Specific to RubyMotion:
 .dat*

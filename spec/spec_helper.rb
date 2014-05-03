@@ -5,8 +5,12 @@
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 require 'stub_chain_mocha'
+require 'vcr'
 require 'coveralls'
+require 'dotenv'
 Coveralls.wear!
+
+Dotenv.load(File.expand_path("../../.test.env", __FILE__))
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
