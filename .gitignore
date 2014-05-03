@@ -8,6 +8,8 @@
 /test/tmp/
 /test/version_tmp/
 /tmp/
+aws.yml
+.env
 
 ## Specific to RubyMotion:
 .dat*
