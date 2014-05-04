@@ -1,17 +1,39 @@
 require_relative "image_downloader"
+require_relative "../hosts/host_factory"
 
 class MessageReader
-  def self.read(msg)
-    json_msg = JSON.parse(msg)
-    self.download_image(json_msg["website_id"], json_msg["post_id"], json_msg["url"])
+
+  def initialize(msg=nil)
+    @msg = msg
   end
 
-  def self.download_image(website_id, post_id, url)
-    imageDownloader = ImageDownloader.new.build_info(id, @post_id, url)
-    if imageDownloader.key
-      pp "Save #{imageDownloader.key}"
-      imageDownloader.download(page_image)
-      sleep(1)
+  def read
+    puts "found SQS message : #{@msg}"
+    json_msg = JSON.parse(@msg)
+    download_image(json_msg["website_id"], json_msg["post_id"], json_msg["image_url"])
+  end
+
+  #Maybe we could send a HEAD request and check content type of response ?
+  def direct_link_to_image?(url)
+    regexp = Regexp.new('^https?://(?:[a-z\-]+\.)+[a-z]{2,6}(?:/[^/#?]+)+\.(?:jpg|gif|png|jpeg|JPEG|JPG|PNG|GIF)$')
+    (url =~ regexp).present?
+  end
+
+  def download_image(website_id, post_id, url)
+    image_downloader = ImageDownloader.new.build_info(website_id, post_id, url)
+    if image_downloader.key.nil?
+      puts "could not determine image key, invalid url : #{url}"
+      return
     end
+
+    if direct_link_to_image?(url)
+      pp "Save #{image_downloader.key}"
+      image_downloader.download
+    else
+      page_image = HostFactory.create_with_host_url(url).page_image rescue nil
+      image_downloader.download(page_image)
+    end
+
+    sleep(1) unless ENV['TEST']
   end
 end

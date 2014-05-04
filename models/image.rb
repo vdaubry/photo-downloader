@@ -26,6 +26,7 @@ class Image
   def self.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size)
     set_base_uri
     retry_call do
+      
       resp = self.post("/websites/#{website_id}/posts/#{post_id}/images.json", :body => {:image => {:source_url => source_url, :hosting_url => hosting_url, :key => key, :status => status, :image_hash => image_hash, :width => width, :height => height, :file_size => file_size}})
 
       if resp.code == 422
