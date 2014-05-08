@@ -16,7 +16,9 @@ module Facades
       @queue = begin
                 sqs.queues.named(ENV["QUEUE_NAME"])
               rescue AWS::SQS::Errors::NonExistentQueue => e
-                sqs.queues.create(ENV["QUEUE_NAME"])
+                sqs.queues.create(ENV["QUEUE_NAME"],
+                  :visibility_timeout => 90,
+                  :message_retention_period => 1209600)
               end
     end
 
@@ -27,6 +29,7 @@ module Facades
     def poll
       @queue.poll do |received_message| 
         yield(received_message.body)
+        received_message.delete
       end
     end
   end

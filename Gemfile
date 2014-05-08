@@ -15,6 +15,7 @@ gem 'net-sftp',                 '~> 2.1.2'
 gem 'mail',                     git: 'git://github.com/pwnall/mail', :ref => 'd367c0827b10161d7cc42fd22237daa9a7cedafd' #Fixes mail dependency with mimetypes 1.x which conflicts with Mechanize dependency on mimetypes 2.x => https://github.com/mikel/mail/issues/641
 gem 'mechanize',                '~> 2.7.3'
 gem 'httparty',                 '~> 0.13.1'
+gem 'sentry-raven',             '~> 0.8.0'
 
 group :test do
   gem 'coveralls',              '~> 0.7.0', require: false
