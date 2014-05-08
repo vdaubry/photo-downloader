@@ -82,19 +82,27 @@ class ImageDownloader
     File.open(image_save_path) {|f| puts "size after = #{f.size}"}
   end
 
+  def download_image_from_url
+    puts "Downloading with open-uri : #{source_url}"
+    puts Benchmark.measure { 
+      open(image_save_path, 'wb') do |file|
+        file << open(source_url, :allow_redirections => :all).read
+      end
+    }
+  end
+
+  def download_image_from_mechanize_page(page_image)
+    puts "Downloading with mechanize #{page_image.url.to_s}"
+    puts Benchmark.measure { 
+      page_image.fetch.save image_save_path #To protect from hotlinking we reuse the same session
+    }
+  end
+
   def get_remote_image(page_image)
     if page_image
-      puts "Downloading with mechanize #{page_image.url.to_s}"
-      puts Benchmark.measure { 
-        page_image.fetch.save image_save_path #To protect from hotlinking we reuse the same session
-      }
+      download_image_from_mechanize_page(page_image)
     else
-      puts "Downloading with open-uri : #{source_url}"
-      puts Benchmark.measure { 
-        open(image_save_path, 'wb') do |file|
-          file << open(source_url, :allow_redirections => :all).read
-        end
-      }
+      download_image_from_url
     end
   end
 
