@@ -1,0 +1,10 @@
+language: ruby
+rvm:
+  - 2.1.1
+
+script:
+  - RAILS_ENV=test
+  - bundle exec rspec
+
+before_install:
+  - sudo apt-get install -qq advancecomp gifsicle jhead jpegoptim libjpeg-progs optipng pngcrush
