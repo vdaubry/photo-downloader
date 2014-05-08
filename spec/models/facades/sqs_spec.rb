@@ -54,6 +54,7 @@ describe "Facades::SQS" do
   describe "poll" do
     context "has messages in queue" do
       it "pulls messages from queue" do
+        AWS::SQS::ReceivedMessage.any_instance.stubs(:delete)
         @mock_queue.stubs(:poll)
           .yields(AWS::SQS::ReceivedMessage.new(nil, nil, nil, {:body => "foo"}))
           .then.yields(AWS::SQS::ReceivedMessage.new(nil, nil, nil, {:body => "bar"}))
@@ -62,6 +63,13 @@ describe "Facades::SQS" do
 
         facade.poll {|msg| msg.should == "foo"}
         facade.poll {|msg| msg.should == "bar"}
+      end
+
+      it "deletes the message" do
+        @mock_queue.stubs(:poll)
+          .yields(AWS::SQS::ReceivedMessage.new(nil, nil, nil, {:body => "foo"}))
+        AWS::SQS::ReceivedMessage.any_instance.expects(:delete)
+        Facades::SQS.new.poll {}
       end
     end
   end

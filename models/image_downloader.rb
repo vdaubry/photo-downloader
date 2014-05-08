@@ -105,7 +105,7 @@ class ImageDownloader
       compress_image
       set_image_info
       generate_thumb
-      result = Image.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size).present?            
+      result = Image.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size).present?
       Ftp.new.upload_file(self) if result
     end
     
