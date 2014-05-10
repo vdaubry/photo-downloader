@@ -34,7 +34,7 @@ set :deploy_to, '/srv/www/photo-downloader'
 # Default value for keep_releases is 5
 set :keep_releases, 2
 
-set :ssh_options, { :forward_agent => true, :keys => %w(~/.ssh/paulette_ec2.pem), :paranoid => false }
+set :ssh_options, { :forward_agent => true, :paranoid => false }
 
 namespace :deploy do
 

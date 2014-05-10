@@ -27,6 +27,7 @@ module Facades
     end
 
     def poll
+      puts "Start polling queue : #{@queue.url}"
       @queue.poll do |received_message| 
         yield(received_message.body)
         received_message.delete
