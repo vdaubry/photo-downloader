@@ -4,9 +4,10 @@
 # is considered to be the first unless any hosts have the primary
 # property set.  Don't declare `role :all`, it's a meta role.
 
-role :app, %w{deploy@54.72.162.77}
-role :web, %w{deploy@54.72.162.77}
-role :db,  %w{deploy@54.72.162.77}
+ip=File.read("config/instance.ip")
+role :app, ["deploy@#{ip}"]
+role :web, ["deploy@#{ip}"]
+role :db,  ["deploy@#{ip}"]
 
 
 # Extended Server Syntax
@@ -15,7 +16,7 @@ role :db,  %w{deploy@54.72.162.77}
 # server list. The second argument is a, or duck-types, Hash and is
 # used to set extended properties on the server.
 
-server '54.72.162.77', user: 'deploy', roles: %w{web app}
+server "#{ip}", user: 'deploy', roles: %w{web app}
 
 
 # Custom SSH Options

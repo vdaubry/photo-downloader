@@ -136,7 +136,7 @@ class ImageDownloader
     rescue Mechanize::ResponseCodeError => e
       puts e.to_s
     rescue RuntimeError => e
-      puts "progressbar error :"+e.to_s
+      puts "Runtime error :"+e.to_s
     rescue Zlib::BufError => e
       puts e.to_s
     rescue Net::HTTP::Persistent::Error => e
