@@ -129,6 +129,8 @@ class ImageDownloader
       puts "40x error at url : #{source_url}"+e.to_s
     rescue Errno::ECONNRESET => e
       puts e.to_s
+    rescue Errno::ETIMEDOUT => e
+      puts e.to_s
     rescue EOFError => e
       puts e.to_s
     rescue SocketError => e
