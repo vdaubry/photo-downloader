@@ -20,6 +20,10 @@ class ImageDownloader
 
   def key_from_url(source_url)
     image_path = File.basename(URI.parse(source_url).path)
+    ext = File.extname(image_path)
+    if [".html", ".htm"].include?(ext)
+      image_path = image_path.split(ext).first
+    end
     DateTime.now.to_i.to_s + "_" + image_path.gsub('-', '_').gsub(/[^0-9A-Za-z_\.]/, '')
   end
 

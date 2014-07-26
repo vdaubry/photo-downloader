@@ -188,4 +188,45 @@ describe ImageDownloader do
 			image.height.should == 390
 		}
 	end
+
+	describe "generate_thumb" do
+		before(:each) do
+			@image = ImageDownloader.new("calinours.jpg")
+			ImageDownloader.stubs(:image_path).returns("spec/ressources")
+			ImageDownloader.stubs(:thumbnail_path).returns("spec/ressources/tmp/images/thumbnails/300")
+		end
+
+		it "generates a thumbnail" do
+			@image.generate_thumb
+
+			File.exist?(@image.thumbnail_save_path).should == true
+		end
+	end
+
+	describe "key_from_url" do
+		before(:each) do
+			@fake_date = DateTime.parse("01/01/2014")
+			DateTime.stubs(:now).returns @fake_date
+		end
+
+		it "turns url of jpg images into key" do
+			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.jpg")
+			key.should == "1388534400_0201AP__37_.jpg"
+		end
+
+		it "turns url of png images into key" do
+			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.png")
+			key.should == "1388534400_0201AP__37_.png"
+		end		
+
+		it "removes .html extensions from key" do
+			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.jpg.html")
+			key.should == "1388534400_0201AP__37_.jpg"
+		end
+
+		it "removes .htm extensions from key" do
+			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.jpg.htm")
+			key.should == "1388534400_0201AP__37_.jpg"
+		end
+	end
 end
