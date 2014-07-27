@@ -114,7 +114,7 @@ class ImageDownloader
     result = false
     rescue_errors do
       get_remote_image(page_image)
-      compress_image
+      #compress_image #compression can take up to 5min on a t1.micro, and compresses only less than 20% most of the time. disable it for now 
       set_image_info
       generate_thumb
       result = Image.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size).present?
