@@ -27,13 +27,13 @@ end
 #
 ###########################################################
 
-Thread.new {
-  restart_delay = 60*55
-  puts "Will restart in #{restart_delay} seconds"
-  restart_delay.times { sleep(1) }
-  puts "Shutting down in env #{APP_ENV}"
-  system("shutdown -h now") 
-}
+# Thread.new {
+#   restart_delay = 60*55
+#   puts "Will restart in #{restart_delay} seconds"
+#   restart_delay.times { sleep(1) }
+#   puts "Shutting down in env #{APP_ENV}"
+#   system("shutdown -h now") 
+# }
 
 
 ###########################################################
