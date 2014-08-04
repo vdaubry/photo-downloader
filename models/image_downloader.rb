@@ -5,7 +5,7 @@ require 'mini_magick'
 require 'active_support/time'
 require 'benchmark'
 require 'progressbar'
-require 'image_optim'
+#require 'image_optim'
 require_relative 'facades/ftp'
 require_relative 'image'
 

@@ -94,7 +94,6 @@
             "easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz\n",
             "cfn-init --region ", { "Ref" : "AWS::Region" },
             "    -s ", { "Ref" : "AWS::StackId" }, " -r LaunchConfig ", "-v\n",
-            "chown -R ubuntu:ubuntu /srv\n",
             "cd /srv/www/photo-downloader/current\n",
             "bundle install\n",
             "echo APP_ENV=\"'production'\" | sudo tee config/application.rb\n",
