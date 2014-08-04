@@ -163,13 +163,13 @@ describe ImageDownloader do
 		end
 	end
 
-	describe "compress_image" do
-		it "compresses image" do
-			image = ImageDownloader.new(:key => "large_image.jpg")
-			image.stubs(:image_save_path).returns("spec/ressources/large_image.jpg")
-			image.compress_image
-		end
-	end
+	# describe "compress_image" do
+	# 	it "compresses image" do
+	# 		image = ImageDownloader.new(:key => "large_image.jpg")
+	# 		image.stubs(:image_save_path).returns("spec/ressources/large_image.jpg")
+	# 		image.compress_image
+	# 	end
+	# end
 
 
 	describe "set_image_info" do
