@@ -22,8 +22,6 @@ class ImageDownloader
     image_path = File.basename(URI.parse(source_url).path)
     ext = File.extname(image_path)
 
-    pp ext
-
     if [".html", ".htm"].include?(ext)
       image_path = image_path.split(ext).first
     end
