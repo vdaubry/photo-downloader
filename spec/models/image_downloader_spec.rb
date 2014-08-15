@@ -12,14 +12,14 @@ describe ImageDownloader do
 		end
 
 		it "create a new image with parameters" do
-			url = "http://foo.bar"
+			url = "http://foo.bar/1.jpg"
 			
 			img = ImageDownloader.new.build_info(123, 456, url)
 
 			img.website_id.should == 123
 			img.post_id.should == 456
 			img.source_url.should == url
-			img.key.should == @fake_date.to_i.to_s + "_" + File.basename(URI.parse(url).path)
+			img.key.should == @fake_date.to_i.to_s + "_" + "1.jpg"
 			img.status.should == ImageDownloader::TO_SORT_STATUS
 		end
 
@@ -226,6 +226,11 @@ describe ImageDownloader do
 
 		it "removes .htm extensions from key" do
 			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.jpg.htm")
+			key.should == "1388534400_0201AP__37_.jpg"
+		end
+
+		it "adds .jpg extension if no extension" do
+			key = ImageDownloader.new.key_from_url("http://www.somehost.com/9wt2c2wavmv0/0201AP__37_.html")
 			key.should == "1388534400_0201AP__37_.jpg"
 		end
 	end
