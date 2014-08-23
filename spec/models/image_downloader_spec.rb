@@ -5,6 +5,8 @@ require_relative '../../models/facades/ftp'
 
 describe ImageDownloader do
 
+	let(:fake_date) { DateTime.parse("20/10/2010") }
+
 	describe "build info" do
 		before(:each) do
 			@fake_date = DateTime.parse("01/01/2014")
@@ -14,7 +16,7 @@ describe ImageDownloader do
 		it "create a new image with parameters" do
 			url = "http://foo.bar/1.jpg"
 			
-			img = ImageDownloader.new.build_info(123, 456, url)
+			img = ImageDownloader.new.build_info(123, 456, url, fake_date)
 
 			img.website_id.should == 123
 			img.post_id.should == 456
@@ -24,13 +26,12 @@ describe ImageDownloader do
 		end
 
 		it "format special characters" do
-			img = ImageDownloader.new.build_info(123, 456, "http://foo.bar/abc-jhvg-emil123.jpg")
-
+			img = ImageDownloader.new.build_info(123, 456, "http://foo.bar/abc-jhvg-emil123.jpg", fake_date)
 			img.key.should == @fake_date.to_i.to_s + "_" + "abc_jhvg_emil123.jpg"
 		end
 
 		it "sets nil key if invalid uri" do
-			img = ImageDownloader.new.build_info(123, 456, "http://foo.*malware*/img.jpg")
+			img = ImageDownloader.new.build_info(123, 456, "http://foo.*malware*/img.jpg", fake_date)
 			img.key.should == nil
 		end
 	end
@@ -53,9 +54,19 @@ describe ImageDownloader do
 		end
 
 		it "POST image to photo downloader" do
-			params = {:source_url => "www.foo.bar/image.png", :hosting_url => "www.foo.bar", :key => "543_image.png", :status => "TO_SORT_STATUS", :image_hash => "dfg2345679876", :width => 400, :height => 400, :file_size => 123456, :website_id => 123, :post_id => 456}
+			params = {:source_url => "www.foo.bar/image.png", 
+				:hosting_url => "www.foo.bar", 
+				:key => "543_image.png", 
+				:status => "TO_SORT_STATUS", 
+				:image_hash => "dfg2345679876", 
+				:width => 400, 
+				:height => 400, 
+				:file_size => 123456, 
+				:website_id => 123, 
+				:post_id => 456, 
+				:scrapped_at => fake_date}
 			params.each {|k, v| image.instance_variable_set("@#{k}", v)}
-			Image.stubs(:create).with(123, 456, "www.foo.bar/image.png", "www.foo.bar", "543_image.png", "TO_SORT_STATUS", "dfg2345679876", 400, 400, 123456).returns(Image.new({}))
+			Image.stubs(:create).with(123, 456, "www.foo.bar/image.png", "543_image.png", "TO_SORT_STATUS", "dfg2345679876", 400, 400, 123456, fake_date).returns(Image.new({}))
 			Ftp.any_instance.stubs(:upload_file).returns(nil)
 
 			image.download.should == true

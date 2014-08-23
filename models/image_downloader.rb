@@ -12,7 +12,7 @@ require_relative 'image'
 class ImageDownloader
   TO_SORT_STATUS="TO_SORT_STATUS"
 
-  attr_accessor :source_url, :hosting_url, :key, :status, :image_hash, :width, :height, :file_size, :website_id, :post_id
+  attr_accessor :source_url, :key, :status, :image_hash, :width, :height, :file_size, :website_id, :post_id, :scrapped_at
 
   def initialize(key=nil)
     @key = key
@@ -33,11 +33,10 @@ class ImageDownloader
     DateTime.now.to_i.to_s + "_" + image_path.gsub('-', '_').gsub(/[^0-9A-Za-z_\.]/, '')
   end
 
-  def build_info(website_id, post_id, source_url, hosting_url=nil)
+  def build_info(website_id, post_id, source_url, scrapped_at)
     @website_id = website_id
     @post_id = post_id
     @source_url = source_url
-    @hosting_url = hosting_url
     begin
       @key = key_from_url(source_url)
     rescue URI::InvalidURIError => e
@@ -123,7 +122,7 @@ class ImageDownloader
       #compress_image #compression can take up to 5min on a t1.micro, and compresses only less than 20% most of the time. disable it for now 
       set_image_info
       generate_thumb
-      result = Image.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size).present?
+      result = Image.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at).present?
       Ftp.new.upload_file(self) if result
     end
     

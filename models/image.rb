@@ -9,25 +9,19 @@ class Image
   include HTTParty
   extend ApiHelper
 
-  def self.find_by(website_id, options={})
-    set_base_uri
-    retry_call do
-      resp = get("/websites/#{website_id}/images/search.json", :body => options)
-
-      if resp.code != 200
-        puts "API Failed with response : #{resp.code} for search image with options : #{options}"
-        return
-      end
-      images = resp["images"]
-      images.map {|json| Image.new(json)}
-    end
-  end
-
-  def self.create(website_id, post_id, source_url, hosting_url, key, status, image_hash, width, height, file_size)
+  def self.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at)
     set_base_uri
     retry_call do
       
-      resp = self.post("/websites/#{website_id}/posts/#{post_id}/images.json", :body => {:image => {:source_url => source_url, :hosting_url => hosting_url, :key => key, :status => status, :image_hash => image_hash, :width => width, :height => height, :file_size => file_size}})
+      resp = self.post("/websites/#{website_id}/posts/#{post_id}/images.json", :body => {:image => 
+        {:source_url => source_url, 
+          :key => key, 
+          :status => status, 
+          :image_hash => image_hash, 
+          :width => width, 
+          :height => height, 
+          :file_size => file_size, 
+          :scrapped_at => scrapped_at}})
 
       if resp.code == 422
         puts "API reject image with errors : #{resp["errors"]}"
@@ -46,9 +40,5 @@ class Image
 
   def key
     @json["key"]
-  end
-
-  def hosting_url
-    @json["hosting_url"]
   end
 end
