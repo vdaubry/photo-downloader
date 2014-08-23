@@ -160,6 +160,11 @@ describe ImageDownloader do
 				@image.stubs(:open).raises(Errno::ETIMEDOUT)
 				@image.download.should == false
 			end
+
+			it "catches timeout error" do
+				@image.stubs(:open).raises(Zlib::DataError)
+				@image.download.should == false
+			end
 		end
 	end
 

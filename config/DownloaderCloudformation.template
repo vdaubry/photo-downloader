@@ -74,7 +74,7 @@
         "AvailabilityZones": ["eu-west-1a"],
         "LaunchConfigurationName": { "Ref": "LaunchConfig" },
         "MinSize": "0",
-        "MaxSize": "1",
+        "MaxSize": "3",
         "DesiredCapacity" : "0",
         "TerminationPolicies" : ["OldestInstance"]
       }
@@ -153,9 +153,9 @@
             "MetricName": "ApproximateNumberOfMessagesVisible",
             "Namespace": "AWS/SQS",
             "Statistic": "Minimum",
-            "Period": "3600",
+            "Period": "60",
             "EvaluationPeriods": "1",
-            "Threshold": "2000",
+            "Threshold": "100",
             "AlarmActions": [ { "Ref": "PhotoDownloaderIncreaseScalingPolicy" } ],
             "Dimensions": [
                 {
@@ -174,9 +174,9 @@
             "MetricName": "ApproximateNumberOfMessagesVisible",
             "Namespace": "AWS/SQS",
             "Statistic": "Maximum",
-            "Period": "3600",
+            "Period": "60",
             "EvaluationPeriods": "1",
-            "Threshold": "500",
+            "Threshold": "100",
             "AlarmActions": [ { "Ref": "PhotoDownloaderDecreaseScalingPolicy" } ],
             "Dimensions": [
                 {

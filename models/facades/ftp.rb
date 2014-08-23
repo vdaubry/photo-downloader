@@ -15,7 +15,9 @@ class Ftp
       rescue Net::SSH::Disconnect => e
         puts "Failed to upload image #{image.key} to FTP"+e.to_s
       rescue StandardError => e
-        puts "Fail for unknown reason to upload image #{image.key} to FTP"+e.to_s
+        puts "Fail for unknown reason to upload image #{image.key} to FTP : "+e.to_s
+        puts "image at path #{image.image_save_path} exist? : #{File.exist? image.image_save_path}"
+        puts "image thumbnail at path #{image.thumbnail_save_path} exist? : #{File.exist? image.thumbnail_save_path}"
       end
     end
   end
