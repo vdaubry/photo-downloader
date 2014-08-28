@@ -2,10 +2,13 @@ require 'spec_helper'
 require_relative '../../models/message_reader'
 
 describe "MessageReader" do
+
+  let(:fake_date) { DateTime.parse("20/10/2010") }
+
   describe "read" do
     it "decode message and downloads image" do
-      message = {:website_id => "123", :post_id => "456", :image_url => "http://www.foo.bar/image.png"}.to_json
-      MessageReader.any_instance.expects(:download_image).with("123", "456", "http://www.foo.bar/image.png")
+      message = {:website_id => "123", :post_id => "456", :image_url => "http://www.foo.bar/image.png", :scrapped_at => "2010-10-20T00:00:00+00:00"}.to_json
+      MessageReader.any_instance.expects(:download_image).with("123", "456", "http://www.foo.bar/image.png", fake_date)
       MessageReader.new(message).read
     end
   end
@@ -20,15 +23,15 @@ describe "MessageReader" do
       end
 
       it "build new downloader" do
-        ImageDownloader.any_instance.expects(:build_info).with("123", "456", "http://www.foo.bar/image.png").returns(@mock)
-        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png")
+        ImageDownloader.any_instance.expects(:build_info).with("123", "456", "http://www.foo.bar/image.png", fake_date).returns(@mock)
+        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
       end
 
       context "url to image" do
         it "downloads direct image" do
           MessageReader.stubs(:direct_link_to_image?).returns(true)
           @mock.expects(:download).with()
-          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png")
+          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
         end
       end
 
@@ -39,7 +42,7 @@ describe "MessageReader" do
           HostFactory.stub_chain(:create_with_host_url,:page_image).returns(page)
           @mock.expects(:download).with(page)
 
-          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png")
+          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
         end
       end
     end
@@ -53,7 +56,7 @@ describe "MessageReader" do
 
       it "downloads image if dowloader key is valid" do
         @mock.expects(:download).never
-        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png")
+        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
       end
     end    
   end

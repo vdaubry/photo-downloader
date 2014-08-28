@@ -10,7 +10,7 @@ class MessageReader
   def read
     puts "found SQS message : #{@msg}"
     json_msg = JSON.parse(@msg)
-    download_image(json_msg["website_id"], json_msg["post_id"], json_msg["image_url"])
+    download_image(json_msg["website_id"], json_msg["post_id"], json_msg["image_url"], DateTime.parse(json_msg["scrapped_at"]))
   end
 
   #Maybe we could send a HEAD request and check content type of response ?
@@ -19,8 +19,8 @@ class MessageReader
     (url =~ regexp).present?
   end
 
-  def download_image(website_id, post_id, url)
-    image_downloader = ImageDownloader.new.build_info(website_id, post_id, url)
+  def download_image(website_id, post_id, url, scrapped_at)
+    image_downloader = ImageDownloader.new.build_info(website_id, post_id, url, scrapped_at)
     if image_downloader.key.nil?
       puts "could not determine image key, invalid url : #{url}"
       return
