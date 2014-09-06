@@ -99,7 +99,6 @@ class ImageDownloader
         opts[:proxy_http_basic_authentication] = ["http://photo-visualizer.no-ip.org:3128", "photo-visualizer", ENV['SQUID_PASSWORD']]
       end
       open(image_save_path, 'wb') do |file|
-        puts "opts = #{opts}"
         file << open(source_url, opts).read
       end
     }
