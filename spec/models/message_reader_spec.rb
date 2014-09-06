@@ -23,12 +23,12 @@ describe "MessageReader" do
         ImageDownloader.any_instance.stubs(:build_info).returns(@mock)
       end
 
-      it "build new downloader" do
+      it "build new downloader", :local => true do
         ImageDownloader.any_instance.expects(:build_info).with("123", "456", "http://www.foo.bar/image.png", fake_date).returns(@mock)
         reader.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
       end
 
-      context "url to image" do
+      context "url to image", :local => true do
         it "downloads direct image" do
           MessageReader.stubs(:direct_link_to_image?).returns(true)
           @mock.expects(:download).with(nil, false)
@@ -79,7 +79,7 @@ describe "MessageReader" do
     end
   end
 
-  describe "require_proxy" do
+  describe "require_proxy", :local => true do
     context "url doesn't require proxy" do
       it { reader.require_proxy("http://www.foo.bar/image/1234").should == false }
     end
