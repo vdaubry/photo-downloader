@@ -4,6 +4,7 @@ require_relative '../../models/message_reader'
 describe "MessageReader" do
 
   let(:fake_date) { DateTime.parse("20/10/2010") }
+  let(:reader) { MessageReader.new }
 
   describe "read" do
     it "decode message and downloads image" do
@@ -24,14 +25,14 @@ describe "MessageReader" do
 
       it "build new downloader" do
         ImageDownloader.any_instance.expects(:build_info).with("123", "456", "http://www.foo.bar/image.png", fake_date).returns(@mock)
-        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
+        reader.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
       end
 
       context "url to image" do
         it "downloads direct image" do
           MessageReader.stubs(:direct_link_to_image?).returns(true)
-          @mock.expects(:download).with()
-          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
+          @mock.expects(:download).with(nil, false)
+          reader.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
         end
       end
 
@@ -42,7 +43,7 @@ describe "MessageReader" do
           HostFactory.stub_chain(:create_with_host_url,:page_image).returns(page)
           @mock.expects(:download).with(page)
 
-          MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
+          reader.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
         end
       end
     end
@@ -56,25 +57,38 @@ describe "MessageReader" do
 
       it "downloads image if dowloader key is valid" do
         @mock.expects(:download).never
-        MessageReader.new.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
+        reader.download_image("123", "456", "http://www.foo.bar/image.png", fake_date)
       end
     end    
   end
 
   describe "direct_link_to_image?" do
     context "url to an image" do
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.jpg").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.JPG").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.jpeg").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.JPEG").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.png").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.PNG").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.gif").should == true }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.GIF").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.jpg").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.JPG").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.jpeg").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.JPEG").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.png").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.PNG").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.gif").should == true }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.GIF").should == true }
     end
     context "url to an image host" do
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image/1234").should == false }
-      it { MessageReader.new.direct_link_to_image?("http://www.foo.bar/image.html").should == false }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image/1234").should == false }
+      it { reader.direct_link_to_image?("http://www.foo.bar/image.html").should == false }
+    end
+  end
+
+  describe "require_proxy" do
+    context "url doesn't require proxy" do
+      it { reader.require_proxy("http://www.foo.bar/image/1234").should == false }
+    end
+
+    context "url requires proxy" do
+      it { 
+        url = "http://#{YAML.load_file("private-conf/hosts_conf.yml")["hosts_with_proxy"][0]}/image.jpg"
+        reader.require_proxy(url).should == true 
+      }
     end
   end
 end

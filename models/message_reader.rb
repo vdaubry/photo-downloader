@@ -28,12 +28,18 @@ class MessageReader
 
     if direct_link_to_image?(url)
       pp "Save #{image_downloader.key}"
-      image_downloader.download
+      image_downloader.download(nil, require_proxy(url))
     else
       page_image = HostFactory.create_with_host_url(url).page_image rescue nil
       image_downloader.download(page_image)
     end
 
     sleep(1) unless ENV['TEST']
+  end
+
+  def require_proxy(url)
+    hosts_with_proxy = YAML.load_file("private-conf/hosts_conf.yml")["hosts_with_proxy"]
+    host = URI(url).host
+    hosts_with_proxy.include? host
   end
 end

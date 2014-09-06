@@ -91,11 +91,16 @@ class ImageDownloader
     File.open(image_save_path) {|f| puts "size after = #{f.size}"}
   end
 
-  def download_image_from_url
+  def download_image_from_url(through_proxy)
     puts "Downloading with open-uri : #{source_url}"
     puts Benchmark.measure { 
+      opts = {:allow_redirections => :all}
+      if through_proxy
+        opts[:proxy_http_basic_authentication] = ["http://photo-visualizer.no-ip.org:3128", "photo-visualizer", ENV['SQUID_PASSWORD']]
+      end
       open(image_save_path, 'wb') do |file|
-        file << open(source_url, :allow_redirections => :all).read
+        puts "opts = #{opts}"
+        file << open(source_url, opts).read
       end
     }
   end
@@ -107,18 +112,18 @@ class ImageDownloader
     }
   end
 
-  def get_remote_image(page_image)
+  def get_remote_image(page_image, through_proxy)
     if page_image
       download_image_from_mechanize_page(page_image)
     else
-      download_image_from_url
+      download_image_from_url(through_proxy)
     end
   end
 
-  def download(page_image=nil)
+  def download(page_image=nil, through_proxy=false)
     result = false
     rescue_errors do
-      get_remote_image(page_image)
+      get_remote_image(page_image, through_proxy)
       #compress_image #compression can take up to 5min on a t1.micro, and compresses only less than 20% most of the time. disable it for now 
       set_image_info
       generate_thumb
