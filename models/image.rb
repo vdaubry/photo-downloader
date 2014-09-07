@@ -12,7 +12,7 @@ class Image
   def self.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at)
     set_base_uri
     retry_call do
-      
+
       resp = self.post("/websites/#{website_id}/posts/#{post_id}/images.json", :body => {:image => 
         {:source_url => source_url, 
           :key => key, 

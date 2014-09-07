@@ -37,6 +37,7 @@ class ImageDownloader
     @website_id = website_id
     @post_id = post_id
     @source_url = source_url
+    @scrapped_at = scrapped_at
     begin
       @key = key_from_url(source_url)
     rescue URI::InvalidURIError => e

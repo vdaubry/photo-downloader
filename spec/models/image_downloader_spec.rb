@@ -23,6 +23,7 @@ describe ImageDownloader do
 			img.source_url.should == url
 			img.key.should == @fake_date.to_i.to_s + "_" + "1.jpg"
 			img.status.should == ImageDownloader::TO_SORT_STATUS
+			img.scrapped_at.should == fake_date.to_s
 		end
 
 		it "format special characters" do
