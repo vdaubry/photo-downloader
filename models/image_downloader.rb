@@ -125,8 +125,8 @@ class ImageDownloader
       generate_thumb
       save_ok = Image.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at).present?
       if save_ok
-        Facades::S3.new.write_image(key, File.read(image_save_path))
-        Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, File.read(thumbnail_save_path))
+        Facades::S3.new.write_image(key, image_save_path)
+        Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, thumbnail_save_path)
       end
     end
     

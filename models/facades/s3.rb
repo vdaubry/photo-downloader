@@ -21,24 +21,24 @@ module Facades
     end
 
     def image_path(key)
-      "/image/#{key_path(key)}"
+      "image/#{key_path(key)}"
     end
 
     def thumbnail_path(key, format)
-      "/thumbnail/#{format}/#{key_path(key)}"
+      "thumbnail/#{format}/#{key_path(key)}"
     end
 
-    def write_image(key, data)
+    def write_image(key, path_to_file)
       unless ENV['TEST']
-        obj = @bucket.objects[key]
-        obj.write(Pathname.new(image_path(key)), data)
+        obj = @bucket.objects[image_path(key)]
+        obj.write(Pathname.new(path_to_file))
       end
     end
 
-    def write_thumbnail(key, format, data)
+    def write_thumbnail(key, format, path_to_file)
       unless ENV['TEST']
-        obj = @bucket.objects[key]
-        obj.write(Pathname.new(thumbnail_path(key, format)), data)
+        obj = @bucket.objects[thumbnail_path(key, format)]
+        obj.write(Pathname.new(path_to_file))
       end
     end
   end
