@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'mechanize'
 require_relative '../../models/image_downloader'
-require_relative '../../models/facades/ftp'
+require_relative '../../models/facades/s3'
 
 describe ImageDownloader do
 
@@ -47,135 +47,147 @@ describe ImageDownloader do
 			image.stubs(:compress_image).returns(true)
 		end
 
-		it "uploads file to FTP" do
-			Ftp.any_instance.expects(:upload_file).with(image)
-			Image.stubs(:create).returns(Image.new({}))
+		context "without clean tmp images" do
+			before(:each) do
+				Image.stubs(:create).returns(nil)
+				image.stubs(:image_save_path).returns("spec/ressources/tmp/images/calinours.jpg")
+				image.stubs(:thumbnail_path).returns("spec/ressources/tmp/images/thumbnails/300/calinours.jpg")
+				FileUtils.cp("spec/ressources/calinours.jpg", image.image_save_path)
+				FileUtils.cp("spec/ressources/calinours.jpg", image.thumbnail_save_path)
+			end
 
-			image.download.should == true
+			it "deletes image if API responds with nil" do
+				image.expects(:clean_images).once
+
+				image.download.should == false
+			end
+
+			it "cleans temporary images" do
+				image.download
+
+				File.exist?(image.image_save_path).should == false
+				File.exist?(image.thumbnail_save_path).should == false
+			end
+
 		end
 
-		it "POST image to photo downloader" do
-			params = {:source_url => "www.foo.bar/image.png", 
-				:hosting_url => "www.foo.bar", 
-				:key => "543_image.png", 
-				:status => "TO_SORT_STATUS", 
-				:image_hash => "dfg2345679876", 
-				:width => 400, 
-				:height => 400, 
-				:file_size => 123456, 
-				:website_id => 123, 
-				:post_id => 456, 
-				:scrapped_at => fake_date}
-			params.each {|k, v| image.instance_variable_set("@#{k}", v)}
-			Image.stubs(:create).with(123, 456, "www.foo.bar/image.png", "543_image.png", "TO_SORT_STATUS", "dfg2345679876", 400, 400, 123456, fake_date).returns(Image.new({}))
-			Ftp.any_instance.stubs(:upload_file).returns(nil)
-
-			image.download.should == true
-		end
-
-		it "deletes image if API responds with nil" do
-			Image.stubs(:create).returns(nil)
-			Ftp.any_instance.expects(:upload_file).never
-
-			image.download.should == false
-		end		
-
-		it "ignores file if API create image returns nil" do
-			Image.stubs(:create).returns(nil)
-			Ftp.any_instance.expects(:upload_file).never
-
-			image.download.should == false
-		end
-
-		it "cleans temporary images" do
-			Image.stubs(:create).returns(nil)
-			ImageDownloader.stubs(:image_path).returns("spec/ressources/tmp/images")
-			ImageDownloader.stubs(:thumbnail_path).returns("spec/ressources/tmp/images/thumbnails/300")
-			FileUtils.cp("spec/ressources/calinours.jpg", image.image_save_path)
-			FileUtils.cp("spec/ressources/calinours.jpg", image.thumbnail_save_path)
-			
-			image.download
-
-			File.exist?(image.image_save_path).should == false
-			File.exist?(image.thumbnail_save_path).should == false
-		end
-
-		context "raises exception" do
+		context "with clean tmp images" do
 			before(:each) do
 				image.stubs(:image_save_path).returns("spec/ressources/calinours.jpg")
-				@image = ImageDownloader.new("calinours.jpg")
+				image.stubs(:thumbnail_save_path).returns("spec/ressources/thumb/calinours.jpg")
+				image.stubs(:clean_images).returns(nil)
 			end
 
-			it "catches timeout error" do
-				@image.stubs(:open).raises(Timeout::Error)
-				@image.download.should == false
+			it "uploads file to S3" do
+				Facades::S3.any_instance.expects(:write_image)
+				Facades::S3.any_instance.expects(:write_thumbnail)
+				Image.stubs(:create).returns(Image.new({}))
+				
+				image.download.should == true
 			end
 
-			it "catches 404 error" do
-				@image.stubs(:open).raises(OpenURI::HTTPError.new('',mock('io')))
-				@image.download.should be_false
+			it "POST image to photo downloader" do
+				params = {:source_url => "www.foo.bar/image.png", 
+					:hosting_url => "www.foo.bar", 
+					:key => "543_image.png", 
+					:status => "TO_SORT_STATUS", 
+					:image_hash => "dfg2345679876", 
+					:width => 400, 
+					:height => 400, 
+					:file_size => 123456, 
+					:website_id => 123, 
+					:post_id => 456, 
+					:scrapped_at => fake_date}
+				params.each {|k, v| image.instance_variable_set("@#{k}", v)}
+				Image.stubs(:create).with(123, 456, "www.foo.bar/image.png", "543_image.png", "TO_SORT_STATUS", "dfg2345679876", 400, 400, 123456, fake_date).returns(Image.new({}))
+
+				image.download.should == true
 			end
 
-			it "catches file not found" do
-				@image.stubs(:open).raises(Errno::ENOENT)
-				@image.download.should == false
+			it "ignores file if API create image returns nil" do
+				Image.stubs(:create).returns(nil)
+				Facades::S3.any_instance.expects(:write_image).never
+
+				image.download.should == false
 			end
 
-			it "catches connection error" do
-				@image.stubs(:open).raises(Errno::ECONNRESET)
-				@image.download.should == false
-			end
+			context "raises exception" do
+				before(:each) do
+					image.stubs(:image_save_path).returns("spec/ressources/calinours.jpg")
+					@image = ImageDownloader.new("calinours.jpg")
+				end
 
-			it "catches files error" do
-				@image.stubs(:open).raises(EOFError)
-				@image.download.should == false
-			end
+				it "catches timeout error" do
+					@image.stubs(:open).raises(Timeout::Error)
+					@image.download.should == false
+				end
 
-			it "catches socket error" do
-				@image.stubs(:open).raises(SocketError)
-				@image.download.should == false
-			end
+				it "catches 404 error" do
+					@image.stubs(:open).raises(OpenURI::HTTPError.new('',mock('io')))
+					@image.download.should be_false
+				end
 
-			it "catches mechanize responseCodeError" do
-				page_image = mock()
-				page_image.stubs(:url)
-				page_image.stubs(:fetch).raises(Mechanize::ResponseCodeError.new(stub(:code=>404)))
-				@image.download(page_image) == false
-			end
+				it "catches file not found" do
+					@image.stubs(:open).raises(Errno::ENOENT)
+					@image.download.should == false
+				end
 
-			it "catches RuntimeEror" do
-				@image.stubs(:open).raises(RuntimeError)
-				@image.download.should == false
-			end
+				it "catches connection error" do
+					@image.stubs(:open).raises(Errno::ECONNRESET)
+					@image.download.should == false
+				end
 
-			it "catches Zlib::BufError" do
-				@image.stubs(:open).raises(Zlib::BufError)
-				@image.download.should == false
-			end
+				it "catches files error" do
+					@image.stubs(:open).raises(EOFError)
+					@image.download.should == false
+				end
 
-			it "catches Net::HTTP::Persistent::Error" do
-				@image.stubs(:open).raises(Net::HTTP::Persistent::Error)
-				@image.download.should == false
-			end
+				it "catches socket error" do
+					@image.stubs(:open).raises(SocketError)
+					@image.download.should == false
+				end
 
-			it "catches MiniMagick::Invalid" do
-				@image.stubs(:open).raises(MiniMagick::Invalid)
-				@image.download.should == false
-			end
+				it "catches mechanize responseCodeError" do
+					page_image = mock()
+					page_image.stubs(:url)
+					page_image.stubs(:fetch).raises(Mechanize::ResponseCodeError.new(stub(:code=>404)))
+					@image.download(page_image) == false
+				end
 
-			it "catches memory error" do
-				@image.stubs(:open).raises(Errno::ENOMEM)
-				@image.download.should == false
-			end
+				it "catches RuntimeEror" do
+					@image.stubs(:open).raises(RuntimeError)
+					@image.download.should == false
+				end
 
-			it "catches timeout error" do
-				@image.stubs(:open).raises(Errno::ETIMEDOUT)
-				@image.download.should == false
-			end
+				it "catches Zlib::BufError" do
+					@image.stubs(:open).raises(Zlib::BufError)
+					@image.download.should == false
+				end
 
-			it "catches timeout error" do
-				@image.stubs(:open).raises(Zlib::DataError)
-				@image.download.should == false
+				it "catches Net::HTTP::Persistent::Error" do
+					@image.stubs(:open).raises(Net::HTTP::Persistent::Error)
+					@image.download.should == false
+				end
+
+				it "catches MiniMagick::Invalid" do
+					@image.stubs(:open).raises(MiniMagick::Invalid)
+					@image.download.should == false
+				end
+
+				it "catches memory error" do
+					@image.stubs(:open).raises(Errno::ENOMEM)
+					@image.download.should == false
+				end
+
+				it "catches timeout error" do
+					@image.stubs(:open).raises(Errno::ETIMEDOUT)
+					@image.download.should == false
+				end
+
+				it "catches timeout error" do
+					@image.stubs(:open).raises(Zlib::DataError)
+					@image.download.should == false
+				end
 			end
 		end
 	end
@@ -209,8 +221,9 @@ describe ImageDownloader do
 	describe "generate_thumb" do
 		before(:each) do
 			@image = ImageDownloader.new("calinours.jpg")
-			ImageDownloader.stubs(:image_path).returns("spec/ressources")
-			ImageDownloader.stubs(:thumbnail_path).returns("spec/ressources/tmp/images/thumbnails/300")
+			@image.stubs(:image_save_path).returns("spec/ressources/calinours.jpg")
+			@image.stubs(:thumbnail_path).returns("spec/ressources/tmp/images/thumbnails/300/calinours.jpg")
+
 		end
 
 		it "generates a thumbnail" do

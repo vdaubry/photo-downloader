@@ -6,11 +6,12 @@ require 'active_support/time'
 require 'benchmark'
 require 'progressbar'
 #require 'image_optim'
-require_relative 'facades/ftp'
+require_relative 'facades/s3'
 require_relative 'image'
 
 class ImageDownloader
   TO_SORT_STATUS="TO_SORT_STATUS"
+  THUMBNAIL_FORMAT="300x300"
 
   attr_accessor :source_url, :key, :status, :image_hash, :width, :height, :file_size, :website_id, :post_id, :scrapped_at
 
@@ -19,18 +20,18 @@ class ImageDownloader
   end
 
   def key_from_url(source_url)
-    image_path = File.basename(URI.parse(source_url).path)
-    ext = File.extname(image_path)
+    path = File.basename(URI.parse(source_url).path)
+    ext = File.extname(path)
 
     if [".html", ".htm"].include?(ext)
-      image_path = image_path.split(ext).first
+      path = path.split(ext).first
     end
 
-    if File.extname(image_path)==""
-      image_path = image_path+".jpg"
+    if File.extname(path)==""
+      path = path+".jpg"
     end    
 
-    DateTime.now.to_i.to_s + "_" + image_path.gsub('-', '_').gsub(/[^0-9A-Za-z_\.]/, '')
+    DateTime.now.to_i.to_s + "_" + path.gsub('-', '_').gsub(/[^0-9A-Za-z_\.]/, '')
   end
 
   def build_info(website_id, post_id, source_url, scrapped_at)
@@ -47,25 +48,20 @@ class ImageDownloader
     self
   end
 
-  def self.image_path
-    "tmp/images"
-  end
 
-  def self.thumbnail_path
-    "tmp/images/thumbnails/300"
-  end
-
+  #TODO : utiliser TmpDir
   def image_save_path
-    "#{ImageDownloader.image_path}/#{@key}"
+    "tmp/images/#{@key}"
   end
 
+  #TODO : utiliser TmpDir
   def thumbnail_save_path
-    "#{ImageDownloader.thumbnail_path}/#{@key}"
+    "tmp/images/thumbnails/300/#{@key}"
   end  
 
   def generate_thumb
     image = MiniMagick::Image.open(image_save_path) 
-    image.resize "300x300"
+    image.resize THUMBNAIL_FORMAT
     image.write thumbnail_save_path
   end
 
@@ -121,17 +117,20 @@ class ImageDownloader
   end
 
   def download(page_image=nil, through_proxy=false)
-    result = false
+    save_ok = false
     rescue_errors do
       get_remote_image(page_image, through_proxy)
       #compress_image #compression can take up to 5min on a t1.micro, and compresses only less than 20% most of the time. disable it for now 
       set_image_info
       generate_thumb
-      result = Image.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at).present?
-      Ftp.new.upload_file(self) if result
+      save_ok = Image.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at).present?
+      if save_ok
+        Facades::S3.new.write_image(key, File.read(image_save_path))
+        Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, File.read(thumbnail_save_path))
+      end
     end
     
-    result
+    save_ok
   end
 
   def rescue_errors
