@@ -124,7 +124,7 @@ describe ImageDownloader do
 
 				it "catches 404 error" do
 					@image.stubs(:open).raises(OpenURI::HTTPError.new('',mock('io')))
-					@image.download.should be_false
+					@image.download.should == false
 				end
 
 				it "catches file not found" do
