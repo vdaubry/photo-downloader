@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'dotenv',                   '~> 0.11.1'
+gem 'dotenv',                   '~> 1.0.0'
 gem 'activemodel',              '~> 4.1.6'
 gem 'activesupport',            '~> 4.1.6'
 gem 'sentry-raven',             '~> 0.10.1'

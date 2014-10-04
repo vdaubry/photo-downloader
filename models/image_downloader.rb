@@ -114,6 +114,15 @@ class ImageDownloader
     else
       download_image_from_url(through_proxy)
     end
+    puts "file size : #{File.open(image_save_path).size}"
+  end
+
+  def save_on_S3
+    puts "saving on S3"
+    puts Benchmark.measure { 
+      Facades::S3.new.write_image(key, image_save_path)
+      Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, thumbnail_save_path)
+    }
   end
 
   def download(page_image=nil, through_proxy=false)
@@ -124,10 +133,7 @@ class ImageDownloader
       set_image_info
       generate_thumb
       save_ok = Image.create(website_id, post_id, source_url, key, status, image_hash, width, height, file_size, scrapped_at).present?
-      if save_ok
-        Facades::S3.new.write_image(key, image_save_path)
-        Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, thumbnail_save_path)
-      end
+      save_on_S3 if save_ok
     end
     
     save_ok
