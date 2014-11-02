@@ -27,7 +27,7 @@ describe "GenericHost", :local => true do
 
     context "No main image" do
       it "returns nil" do
-        GenericHost.new("http://www.google.fr").image_url.should == nil
+        GenericHost.new("http://www.firefox.fr").image_url.should == nil
       end
     end
 
