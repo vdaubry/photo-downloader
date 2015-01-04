@@ -2,6 +2,8 @@ require 'aws-sdk'
 
 module Facades
   class S3
+    attr_accessor :bucket
+    
     def initialize
       AWS.config({
       :access_key_id => ENV["AWS_ACCESS_KEY_ID"],
@@ -31,14 +33,14 @@ module Facades
     def write_image(key, path_to_file)
       unless ENV['TEST']
         obj = @bucket.objects[image_path(key)]
-        obj.write(Pathname.new(path_to_file))
+        obj.write(Pathname.new(path_to_file), {:reduced_redundancy => true})
       end
     end
 
     def write_thumbnail(key, format, path_to_file)
       unless ENV['TEST']
         obj = @bucket.objects[thumbnail_path(key, format)]
-        obj.write(Pathname.new(path_to_file))
+        obj.write(Pathname.new(path_to_file), {:reduced_redundancy => true})
       end
     end
   end

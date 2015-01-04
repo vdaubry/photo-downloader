@@ -155,7 +155,7 @@
             "Statistic": "Minimum",
             "Period": "60",
             "EvaluationPeriods": "1",
-            "Threshold": "100",
+            "Threshold": "1",
             "AlarmActions": [ { "Ref": "PhotoDownloaderIncreaseScalingPolicy" } ],
             "Dimensions": [
                 {
@@ -176,7 +176,7 @@
             "Statistic": "Maximum",
             "Period": "60",
             "EvaluationPeriods": "1",
-            "Threshold": "100",
+            "Threshold": "1",
             "AlarmActions": [ { "Ref": "PhotoDownloaderDecreaseScalingPolicy" } ],
             "Dimensions": [
                 {

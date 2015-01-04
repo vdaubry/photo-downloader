@@ -26,4 +26,5 @@ end
 
 group :development do
   gem 'spring-commands-rspec',  '~> 1.0.2'
+  gem 'byebug',                 '~> 3.5.1'
 end

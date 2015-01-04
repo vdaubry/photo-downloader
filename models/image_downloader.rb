@@ -5,6 +5,7 @@ require 'mini_magick'
 require 'active_support/time'
 require 'benchmark'
 require 'progressbar'
+require 'byebug'
 #require 'image_optim'
 require_relative 'facades/s3'
 require_relative 'image'
@@ -12,6 +13,7 @@ require_relative 'image'
 class ImageDownloader
   TO_SORT_STATUS="TO_SORT_STATUS"
   THUMBNAIL_FORMAT="300x300"
+  THUMBNAIL_FORMAT2X="600x600"
 
   attr_accessor :source_url, :key, :status, :image_hash, :width, :height, :file_size, :website_id, :post_id, :scrapped_at
 
@@ -57,10 +59,16 @@ class ImageDownloader
   #TODO : utiliser TmpDir
   def thumbnail_save_path
     "tmp/images/thumbnails/300/#{@key}"
-  end  
+  end
+  
+  def thumbnail2X_save_path
+    "tmp/images/thumbnails/600/#{@key}"
+  end 
 
   def generate_thumb
     image = MiniMagick::Image.open(image_save_path) 
+    image.resize THUMBNAIL_FORMAT2X
+    image.write thumbnail2X_save_path
     image.resize THUMBNAIL_FORMAT
     image.write thumbnail_save_path
   end
@@ -120,8 +128,11 @@ class ImageDownloader
   def save_on_S3
     puts "saving on S3"
     puts Benchmark.measure { 
+      puts "key = #{key}"
+      puts "image_save_path = #{image_save_path}"
       Facades::S3.new.write_image(key, image_save_path)
       Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT, thumbnail_save_path)
+      Facades::S3.new.write_thumbnail(key, THUMBNAIL_FORMAT2X, thumbnail2X_save_path)
     }
   end
 
