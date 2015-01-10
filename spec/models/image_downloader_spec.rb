@@ -30,6 +30,11 @@ describe ImageDownloader do
 			img = ImageDownloader.new.build_info(123, 456, "http://foo.bar/abc-jhvg-emil123.jpg", fake_date)
 			img.key.should == @fake_date.to_i.to_s + "_" + "abc_jhvg_emil123.jpg"
 		end
+    
+    it "format accents" do
+      img = ImageDownloader.new.build_info(123, 456, "http://foo.bar/abc-zál.jpg", fake_date)
+      img.key.should == @fake_date.to_i.to_s + "_" + "abc_zC3A1l.jpg"
+    end
 
 		it "sets nil key if invalid uri" do
 			img = ImageDownloader.new.build_info(123, 456, "http://foo.*malware*/img.jpg", fake_date)
