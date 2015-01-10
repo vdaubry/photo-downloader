@@ -80,7 +80,7 @@ describe ImageDownloader do
 
 			it "uploads file to S3" do
 				Facades::S3.any_instance.expects(:write_image)
-				Facades::S3.any_instance.expects(:write_thumbnail)
+				Facades::S3.any_instance.expects(:write_thumbnail).twice
 				Image.stubs(:create).returns(Image.new({}))
 				
 				image.download.should == true
