@@ -39,10 +39,10 @@ class ImageDownloader
   def build_info(website_id, post_id, source_url, scrapped_at)
     @website_id = website_id
     @post_id = post_id
-    @source_url = source_url
+    @source_url = URI.encode(source_url)
     @scrapped_at = scrapped_at
     begin
-      @key = key_from_url(source_url)
+      @key = key_from_url(@source_url)
     rescue URI::InvalidURIError => e
       puts e.to_s
     end
