@@ -39,7 +39,7 @@ class MessageReader
 
   def require_proxy(url)
     hosts_with_proxy = YAML.load_file("private-conf/hosts_conf.yml")["hosts_with_proxy"]
-    host = URI(url).host
+    host = URI(URI.encode(url)).host
     hosts_with_proxy.include? host
   end
 end
